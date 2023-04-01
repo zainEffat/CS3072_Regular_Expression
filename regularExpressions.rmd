@@ -1,0 +1,252 @@
+---
+title: "Regular Expressions in R"
+output: html_document
+date: "2023-03-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+The regular expression is nothing but a sequence of characters that matches a pattern in a piece of text or a text file. It is used in text mining in a lot of programming languages. The characters of the regular expression are pretty similar in all the languages. But the functions of extracting, locating, detecting, and replacing can be different in different languages.
+
+Here is a set of 7 strings that contain, different patterns. We will use this to learn all the basics.
+
+```{r}
+ch = c('Nancy Smith',
+       'is there any solution?',
+       ".[{(^$|?*+",
+       "coreyms.com", 
+       "321-555-4321", 
+       "123.555.1234",
+       "123*555*1234"
+       )
+
+```
+##List of patterns of regular expressions:
+
+
+1. . = Matches Any Character
+2. \d = Digit (0–9)
+3. \D = Not a digit (0–9)
+4. \w = Word Character (a-z, A-Z, 0–9, _)
+5. \W = Not a word character
+6. \s = Whitespace (space, tab, newline)
+7. \S = Not whitespace (space, tab, newline)
+8. \b = Word Boundary
+9. \B = Not a word boundary
+10. ^ = Beginning of a string
+11. $ = End of a String
+12. [] = matches characters or brackets
+13. [^ ] = matches characters Not in backets
+14. | = Either Or
+15. ( ) = Group
+16. *= 0 or more
+17. + = 1 or more
+18. ? = Yes or No
+19. {x} = Exact Number
+20. {x, y} = Range of Numebrs (Maximum, Minimum)
+
+As per the list above, ‘\d’ catches the digits. To extract all the digits from the ‘ch’:
+
+```{r}
+str_extract_all(ch, "\\d")
+```
+The first four strings do not have any digit. The last three strings are phone numbers. The expression above could catch all the digits from the last three strings.
+
+The capital ‘D’ will catch everything else but the digits.
+
+```{r}
+str_extract_all(ch, "\\D")
+```
+
+Look, it extracted letters, dots, and other special characters but did not extract any digits.
+
+‘w’ matches word characters that include a-z, A-Z, 0–9, and ‘_’. Let’s check.
+
+```{r}
+str_extract_all(ch, "\\w")
+```
+It got everything except dots and special characters.
+
+However, ‘W’ extracts everything but the word characters.
+
+```{r}
+str_extract_all(ch, "\\W")
+```
+We will move to show ‘b’ and ‘B’ now. ‘b’ catches the word boundary. Here is an example:
+
+```{r}
+st = "This is Bliss"
+str_extract_all(st, "\\bis")
+```
+There is only one ‘is’ in the string. So we could catch it here. Let’s see the use of ‘B’
+
+```{r}
+st = "This is Bliss"
+str_extract_all(st, "\\Bis")
+```
+In the string ‘st’ there are two other ‘is’s that’s not in the boundary. That’s in the word ‘This’ and ‘Bliss’. When you use capital B, you catch those.
+
+Number 10 and 11 in the list of expression above are ‘^’ and ‘$’ which indicates the beginning and end of the strings respectively.
+
+Here is an example:
+
+```{r}
+sts = c("This is me",
+        "That my house",
+        "Hello, world!")
+```
+Find all the exclamation points that end a sentence.
+
+```{r}
+str_extract_all(sts, "!$")
+```
+We have only one sentence that ends with an exclamation point. If you want to find the sentence that ends with an exclamation point:
+
+```{r}
+sts[str_detect(sts, "!$")]
+```
+Find the sentences that start with ‘This’.
+
+```{r}
+sts[str_detect(sts, "^This")]
+```
+That is also only one.
+
+Let’s find the sentences that start with “T”.
+
+```{r}
+sts[str_detect(sts, "^T")]
+```
+‘[]’ matches characters or ranges in it.
+
+For this demonstration, let’s go back to ‘ch’. Extract everything in between 2–4.
+
+```{r}
+str_extract_all(ch, "[2-4]")
+```
+To extract the phone numbers only from ‘ch’:
+
+```{r}
+str_extract(ch, "\\d\\d\\d.\\d\\d\\d.\\d\\d\\d\\d")
+```
+In the regular expression above, each ‘\\d’ means a digit, and ‘.’ can match anything in between (look at the number 1 in the list of expressions in the beginning). So we got the digits, then a special character in between, three more digits, then special characters again, then 4 more digits. So anything that matches these criteria were extracted.
+
+The regular expression for the phone number above can be written as follows as well.
+
+```{r}
+str_extract(ch, "\\d{3}.\\d{3}.\\d{4}")
+```
+Look at number 19 of the expression’s list. {x} means the exact number. Here we used {3} which means exactly 3 times. ‘\\d{3}’ means three digits.
+
+But look ‘*’ in-between digits is not a regular phone number format. Normally ‘-’ or ‘.’ may be used as a separator in phone numbers. Right? Let’s match that and exclude the phone number with ‘*’. Because that may look like a 10 digit phone number but it may not be a phone number. We want to stick to the regular phone number format.
+
+
+```{r}
+str_extract(ch, "\\d{3}[-.]\\d{3}[-.]\\d{4}")
+```
+Look, this matches only the usual phone number format. In this expression, after three digits we explicitly mentioned ‘[-.]’ which means it is asking to match only ‘-’ or a dot (‘.’).
+
+Here is a list of phone numbers:
+
+```{r}
+ph = c("543-325-1278",
+       "900-123-7865",
+       "421.235.9845",
+       "453*2389*4567",
+       "800-565-1112",
+       "361 234 4356"
+       )
+```
+Sometimes we do not use any separators in between and just use a space, right? Also, the first digit of a US phone number is not 0 or 1. It’s a number between 2–9. All the other digits can be anything between 0 and 9. Let’s take care of that pattern.
+
+```{r}
+p = "([2-9][0-9]{2})([- .]?)([0-9]{3})([- .])?([0-9]{4})"
+str_extract(ph, p)
+```
+We saved the pattern separately here.
+
+In regular expression ‘()’ used to denote a group. Look at number 15 of the list of expressions.
+
+Here is the break down of the expressions above.
+
+The first group was “([2–9][0–9]{2})”:
+
+‘[2–9]’ represents one digit from 2 to 9
+
+‘[0–9]{2}’ represents two digits from 0 to 9
+
+The second group was “([- .]?)”:
+
+‘[-.]’ means it can be ‘-’ or ‘.’
+
+using ‘?’ after that means ‘-’ and ‘.’ are optional. So, if it is blank that’s also ok.
+
+What if we need to find the phone number that starts with 800 and 900.
+
+```{r}
+p = "[89]00[-.]\\d{3}[-.]\\d{4}"
+str_extract_all(ph, p)
+```
+Let’s understand the regular expression above: “[89]00[-.]\\d{3}[-.]\\d{4}”.
+
+The first character should be 8 or 9. That can be achieved by [89].
+
+The next two elements will be zeros. We explicitly mentioned that.
+
+Then ‘-’ or ‘.’ which can be obtained by [-.].
+
+Next three digits = \\d{3}
+
+Again ‘-’ or ‘.’ = [-.]
+
+Four more digits at the end = \\d{4}
+
+## Extract different formats of Email Addresses
+
+Email addresses are a little more complicated than phone numbers. Because an email address may contain upper case letters, lower case letters, digits, special characters everything. Here is a set of email addresses:
+
+```{r}
+email = c("RashNErel@gmail.com",
+          "rash.nerel@regen04.net",
+          "rash_48@uni.edu",
+          "rash_48_nerel@STB.org")
+```
+
+We will develop a regular expression that will extract all of those email addresses:
+
+First work on the part before the ‘@’ symbol. This part may have lower case letters that can be detected using [a-z], upper case letters that can be detected using [A-Z], digits that can be found using [0–9], and special characters like ‘.’, and ‘_’. All of them can be packed like this:
+
+“[a-zA-Z0–9-.]+”
+
+The ‘+’ sign indicates one or more of those characters (look at the number 17 of the list of expressions). Because we do not know how many different letters, digits or numbers can be there. So this time we cannot use {x} the way we did for phone numbers.
+
+Now work on the part in-between ‘@’ and ‘.’. This part may consist of upper case letters, lower case letters, and digits that can be detected as:
+
+“[a-zA_Z0–9]+”
+
+Finally, the part after ‘.’. Here we have four of them ‘com’, ‘net’, ‘edu’, ‘org’. These four can be caught using a group:
+
+“(com|edu|net|org”)
+
+Here ‘|’ symbol is used to denote either-or. Look at number 14 of the list of expressions in the beginning.
+
+Here is the full expression:
+
+```{r}
+p = "[a-zA-Z0-9-.]+@[a-zA_Z0-9]+\\.(com|edu|net|org)"
+str_extract_all(email, p)
+```
+
+
+Resources:
+https://regenerativetoday.com/a-complete-beginners-guide-to-regular-expressions-in-r/
+
+https://evoldyn.gitlab.io/evomics-2018/ref-sheets/R_strings.pdf
+
+https://regexone.com/
+
+
+
